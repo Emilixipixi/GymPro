@@ -1,4 +1,5 @@
 import 'react-native-gesture-handler';
+import { LogBox } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,6 +8,8 @@ import DrawerNavigator from './src/navigators/DrawerNavigator';
 import RoutineDetailScreen from './src/screens/RoutineDetailScreen';
 import AddRoutineScreen from './src/screens/AddRoutineScreen';
 import { RoutineProvider } from './src/context/RoutineContext';
+
+LogBox.ignoreLogs(['[Reanimated] Reduced motion setting is enabled on this device']);
 
 export type RootStackParamList = {
   MenuPrincipal: undefined;

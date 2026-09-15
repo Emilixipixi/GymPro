@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../../App';
 import { useRoutines, type Routine } from '../context/RoutineContext';
+import EncabezadoApp from '../components/EncabezadoApp';
 
 type PropiedadesNavegacion = NativeStackNavigationProp<RootStackParamList>;
 
@@ -49,6 +50,7 @@ export default function RoutineListScreen() {
 
   return (
     <SafeAreaView style={estilos.contenedor} edges={['top', 'left', 'right']}>
+      <EncabezadoApp />
       <Text style={estilos.encabezado}>Rutinas</Text>
       <FlatList
         data={routines}

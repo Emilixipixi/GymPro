@@ -1,10 +1,12 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import EncabezadoApp from '../components/EncabezadoApp';
 
 export default function ProgressScreen() {
   return (
     <SafeAreaView style={estilos.contenedor} edges={['top', 'left', 'right']}>
+      <EncabezadoApp />
       <Text style={estilos.encabezado}>Progreso</Text>
       
       <View style={estilos.tarjeta}>

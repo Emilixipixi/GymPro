@@ -1,16 +1,22 @@
 import { Image, StyleSheet } from 'react-native';
 
 type PropiedadesLogo = {
-  ancho?: number;
-  alto?: number;
+  url?: string;
+  tamano?: number;
 };
 
-export default function Logo({ ancho = 180, alto = 60 }: PropiedadesLogo) {
+const urlPorDefecto =
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUaHED-uFEhbAN5RC4y3OUT1f8BSDEpr8neFMm9xga0K3iN7wJiSiKiFs&s=10';
+
+export default function Logo({ url = urlPorDefecto, tamano = 90 }: PropiedadesLogo) {
   return (
     <Image
-      source={{ uri: 'https://cdn.vectorstock.com/i/1000v/27/41/male-bodybuilder-icon-gym-logo-vector-46442741.jpg' }}
-      style={[estilos.logo, { width: ancho, height: alto }]}
-      resizeMode="contain"
+      source={{ uri: url }}
+      style={[
+        estilos.logo,
+        { width: tamano, height: tamano, borderRadius: tamano / 2 },
+      ]}
+      resizeMode="cover"
     />
   );
 }
@@ -18,5 +24,6 @@ export default function Logo({ ancho = 180, alto = 60 }: PropiedadesLogo) {
 const estilos = StyleSheet.create({
   logo: {
     alignSelf: 'center',
+    backgroundColor: '#1A1A1A',
   },
 });
