@@ -6,6 +6,7 @@ export default function ProgressScreen() {
   return (
     <SafeAreaView style={estilos.contenedor} edges={['top', 'left', 'right']}>
       <Text style={estilos.encabezado}>Progreso</Text>
+      
       <View style={estilos.tarjeta}>
         <Ionicons name="trending-up-outline" size={28} color="#E11D2E" />
         <Text style={estilos.mensaje}>Aún no registras entrenamientos. ¡Empieza tu primera rutina!</Text>

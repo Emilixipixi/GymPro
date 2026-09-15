@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,7 +16,13 @@ const ejerciciosPecho: Ejercicio[] = [
   { id: '4', nombre: 'Fondos en paralelas', series: '3 x al fallo', descanso: '90 seg' },
 ];
 
+
+
 export default function ChestDetailScreen() {
+  const marcarRutinaCompletada = () =>{
+  Alert.alert('¡Felicidades!', 'Has completado la rutina de pecho.',[{text: 'OK'}]);
+
+}
   return (
     <SafeAreaView style={estilos.contenedor} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={estilos.scroll}>
@@ -39,6 +45,10 @@ export default function ChestDetailScreen() {
             </View>
           </View>
         ))}
+        <Pressable style={estilos.botonCompletar} onPress={marcarRutinaCompletada}>
+          <Ionicons name="checkmark-done-outline" size={20} color="#FFFFFF" />
+          <Text style={estilos.textoBoton}>Marcar como completada</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -72,4 +82,13 @@ const estilos = StyleSheet.create({
   nombreEjercicio: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   filaDetalle: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 4 },
   detalleTexto: { fontSize: 13, color: '#9A9A9A', marginRight: 8 },
+
+  botonCompletar: {
+    backgroundColor: '#E11D2E',
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  textoBoton: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });
