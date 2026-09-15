@@ -1,6 +1,6 @@
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 import TabNavigator from './TabNavigator';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -11,6 +11,11 @@ export type DrawerParamList = {
   Configuracion: undefined;
 };
 
+type PropiedadesDrawerNavigator = {
+  nombre: string;
+  apellido: string;
+};
+
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
 function ContenidoDrawer(props: any) {
@@ -18,17 +23,20 @@ function ContenidoDrawer(props: any) {
     <DrawerContentScrollView {...props} contentContainerStyle={estilos.contenidoDrawer}>
       <View style={estilos.encabezado}>
         <Logo />
+        <Text style={estilos.nombreUsuario}>
+          {props.nombre} {props.apellido}
+        </Text>
       </View>
       <DrawerItemList {...props} />
     </DrawerContentScrollView>
   );
 }
 
-export default function DrawerNavigator() {
+export default function DrawerNavigator({ nombre, apellido }: PropiedadesDrawerNavigator) {
   return (
     <Drawer.Navigator
       initialRouteName="MiEntrenamiento"
-      drawerContent={(props) => <ContenidoDrawer {...props} />}
+      drawerContent={(props) => <ContenidoDrawer {...props} nombre={nombre} apellido={apellido} />}
       screenOptions={{
         headerStyle: { backgroundColor: '#141414' },
         headerTintColor: '#FFFFFF',
@@ -63,15 +71,19 @@ export default function DrawerNavigator() {
 }
 
 const estilos = StyleSheet.create({
-  contenidoDrawer: {
-    flex: 1,
-    paddingTop: 0,
-  },
+  contenidoDrawer: { flex: 1, paddingTop: 0 },
   encabezado: {
     paddingVertical: 24,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#262626',
     marginBottom: 8,
+    alignItems: 'center',
+    gap: 10,
+  },
+  nombreUsuario: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

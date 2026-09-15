@@ -4,14 +4,20 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import DrawerNavigator from './src/navigators/DrawerNavigator';
-import ChestDetailScreen from './src/screens/ChestDetailScreen';
+import RoutineDetailScreen from './src/screens/RoutineDetailScreen';
+import AddRoutineScreen from './src/screens/AddRoutineScreen';
+import { RoutineProvider } from './src/context/RoutineContext';
 
 export type RootStackParamList = {
   MenuPrincipal: undefined;
-  DetalleRutinaPecho: undefined;
+  Detail: { id: string };
+  AddRoutine: { id?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const nombreUsuario = 'Emilio';
+const apellidoUsuario = 'Morales';
 
 const temaOscuro = {
   ...DefaultTheme,
@@ -26,26 +32,34 @@ const temaOscuro = {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={temaOscuro}>
-        <Stack.Navigator initialRouteName="MenuPrincipal">
-          <Stack.Screen
-            name="MenuPrincipal"
-            component={DrawerNavigator}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="DetalleRutinaPecho"
-            component={ChestDetailScreen}
-            options={{
-              title: 'Rutina de Pecho',
-              headerShown: true,
-              headerStyle: { backgroundColor: '#141414' },
-              headerTintColor: '#FFFFFF',
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <RoutineProvider>
+      <SafeAreaProvider>
+        <NavigationContainer theme={temaOscuro}>
+          <Stack.Navigator initialRouteName="MenuPrincipal">
+            <Stack.Screen name="MenuPrincipal" options={{ headerShown: false }}>
+              {() => <DrawerNavigator nombre={nombreUsuario} apellido={apellidoUsuario} />}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Detail"
+              component={RoutineDetailScreen}
+              options={{
+                title: 'Detalle de Rutina',
+                headerStyle: { backgroundColor: '#141414' },
+                headerTintColor: '#FFFFFF',
+              }}
+            />
+            <Stack.Screen
+              name="AddRoutine"
+              component={AddRoutineScreen}
+              options={({ route }) => ({
+                title: route.params?.id ? 'Editar Rutina' : 'Nueva Rutina',
+                headerStyle: { backgroundColor: '#141414' },
+                headerTintColor: '#FFFFFF',
+              })}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </RoutineProvider>
   );
 }
