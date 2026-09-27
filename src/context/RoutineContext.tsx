@@ -8,6 +8,11 @@ export type Routine = {
   muscleGroup: string;
   duration: number;
   createdAt: string;
+  featured: boolean;
+};
+
+type RutinaBD = Omit<Routine, 'featured'> & {
+  featured: number;
 };
 
 type DatosRutina = {
@@ -21,6 +26,8 @@ type RoutineContextType = {
   addRoutine: (datos: DatosRutina) => Promise<boolean>;
   updateRoutine: (id: string, datos: DatosRutina) => Promise<boolean>;
   deleteRoutine: (id: string) => Promise<void>;
+  featuredRoutine: Routine | undefined;
+  toggleFeatured: (id: string) => Promise<void>;
 };
 
 export const gruposMusculares = ['Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos'];
@@ -33,9 +40,10 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
 
   const cargarRutinas = async () => {
     try {
-      const resultado = await db.getAllAsync<Routine>('SELECT * FROM rutinas ORDER BY createdAt ASC');
-      setRoutines(resultado);
+      const resultado = await db.getAllAsync<RutinaBD>('SELECT * FROM rutinas ORDER BY createdAt ASC');
+      setRoutines(resultado.map((fila) => ({ ...fila, featured: fila.featured === 1 })));
     } catch (error) {
+      console.log('Error al cargar rutinas:', error);
       Alert.alert('Error', 'No se pudieron cargar las rutinas');
     }
   };
@@ -68,6 +76,7 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
       await cargarRutinas();
       return true;
     } catch (error) {
+      console.log('Error al actualizar rutina:', error);
       Alert.alert('Error', 'No se pudo actualizar la rutina');
       return false;
     }
@@ -78,12 +87,37 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
       await db.runAsync('DELETE FROM rutinas WHERE id = ?', [id]);
       await cargarRutinas();
     } catch (error) {
+      console.log('Error al eliminar rutina:', error);
       Alert.alert('Error', 'No se pudo eliminar la rutina');
     }
   };
 
+  const toggleFeatured = async (id: string) => {
+    const rutina = routines.find((item) => item.id === id);
+    if (!rutina) {
+      return;
+    }
+
+    try {
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('UPDATE rutinas SET featured = 0');
+        if (!rutina.featured) {
+          await db.runAsync('UPDATE rutinas SET featured = 1 WHERE id = ?', [id]);
+        }
+      });
+      await cargarRutinas();
+    } catch (error) {
+      console.log('Error al destacar rutina:', error);
+      Alert.alert('Error', 'No se pudo actualizar la rutina destacada');
+    }
+  };
+
+  const featuredRoutine = routines.find((rutina) => rutina.featured);
+
   return (
-    <RoutineContext.Provider value={{ routines, addRoutine, updateRoutine, deleteRoutine }}>
+    <RoutineContext.Provider
+      value={{ routines, addRoutine, updateRoutine, deleteRoutine, featuredRoutine, toggleFeatured }}
+    >
       {children}
     </RoutineContext.Provider>
   );

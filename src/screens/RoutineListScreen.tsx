@@ -15,7 +15,7 @@ const opcionesFiltro = ['Todos', ...gruposMusculares];
 
 export default function RoutineListScreen() {
   const navegacion = useNavigation<PropiedadesNavegacion>();
-  const { routines, deleteRoutine } = useRoutines();
+  const { routines, deleteRoutine, toggleFeatured } = useRoutines();
 
   const [filtroGrupo, setFiltroGrupo] = useState('Todos');
 
@@ -37,11 +37,16 @@ export default function RoutineListScreen() {
   };
 
   const renderizarRutina = ({ item }: { item: Routine }) => (
-    <View style={estilos.tarjeta}>
-      <View style={estilos.iconoTarjeta}>
-        <Ionicons name="barbell-outline" size={22} color="#E11D2E" />
+    <View style={[estilos.tarjeta, item.featured && estilos.tarjetaDestacada]}>
+      <View style={[estilos.iconoTarjeta, item.featured && estilos.iconoTarjetaDestacada]}>
+        <Ionicons
+          name={item.featured ? 'star' : 'barbell-outline'}
+          size={22}
+          color={item.featured ? '#FACC15' : '#E11D2E'}
+        />
       </View>
       <View style={estilos.textoTarjeta}>
+        {item.featured && <Text style={estilos.etiquetaDestacada}>★ DESTACADA</Text>}
         <Text style={estilos.tituloTarjeta} numberOfLines={1}>{item.name}</Text>
         <View style={estilos.filaDatos}>
           <View style={estilos.chipGrupo}>
@@ -52,6 +57,9 @@ export default function RoutineListScreen() {
         </View>
       </View>
       <View style={estilos.acciones}>
+        <Pressable style={[estilos.botonAccion, estilos.botonDestacar]} onPress={() => toggleFeatured(item.id)}>
+          <Ionicons name={item.featured ? 'star' : 'star-outline'} size={18} color="#FACC15" />
+        </Pressable>
         <Pressable style={[estilos.botonAccion, estilos.botonVer]} onPress={() => irADetalle(item.id)}>
           <Ionicons name="eye-outline" size={18} color="#FFFFFF" />
         </Pressable>
@@ -99,7 +107,7 @@ export default function RoutineListScreen() {
         ListEmptyComponent={
           <Text style={estilos.mensajeVacio}>
             {filtroGrupo === 'Todos'
-              ? 'Aun no tienes rutinas. Crea la primera con el boton +.'
+              ? 'Aún no tienes rutinas. Crea la primera con el botón +.'
               : `No tienes rutinas de ${filtroGrupo}.`}
           </Text>
         }
@@ -150,6 +158,11 @@ const estilos = StyleSheet.create({
     borderLeftColor: '#E11D2E',
     marginBottom: 12,
   },
+  tarjetaDestacada: {
+    borderColor: 'rgba(250, 204, 21, 0.4)',
+    borderLeftColor: '#FACC15',
+    backgroundColor: '#1C1A12',
+  },
   iconoTarjeta: {
     width: 44,
     height: 44,
@@ -158,6 +171,14 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  iconoTarjetaDestacada: { backgroundColor: 'rgba(250, 204, 21, 0.14)' },
+  etiquetaDestacada: {
+    color: '#FACC15',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginBottom: 2,
   },
   textoTarjeta: { flex: 1 },
   tituloTarjeta: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
@@ -171,7 +192,7 @@ const estilos = StyleSheet.create({
   },
   textoChipGrupo: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
   subtituloTarjeta: { fontSize: 13, color: '#9A9A9A' },
-  acciones: { flexDirection: 'row', gap: 6, marginLeft: 8 },
+  acciones: { flexDirection: 'row', gap: 4, marginLeft: 8 },
   botonAccion: {
     width: 34,
     height: 34,
@@ -179,6 +200,7 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  botonDestacar: { backgroundColor: 'rgba(250, 204, 21, 0.12)' },
   botonVer: { backgroundColor: '#262626' },
   botonEditar: { backgroundColor: 'rgba(225, 166, 46, 0.12)' },
   botonEliminar: { backgroundColor: 'rgba(225, 29, 46, 0.12)' },
