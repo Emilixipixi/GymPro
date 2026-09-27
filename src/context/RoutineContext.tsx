@@ -21,6 +21,8 @@ type RoutineContextType = {
   deleteRoutine: (id: string) => void;
 };
 
+export const gruposMusculares = ['Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos'];
+
 const RoutineContext = createContext<RoutineContextType | undefined>(undefined);
 
 const rutinasIniciales: Routine[] = [

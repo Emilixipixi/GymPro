@@ -1,18 +1,28 @@
-import { Text, View, StyleSheet, FlatList, Pressable } from 'react-native';
+import { useState } from 'react';
+import { Text, View, StyleSheet, FlatList, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../../App';
-import { useRoutines, type Routine } from '../context/RoutineContext';
+import { useRoutines, gruposMusculares, type Routine } from '../context/RoutineContext';
 import EncabezadoApp from '../components/EncabezadoApp';
 
 type PropiedadesNavegacion = NativeStackNavigationProp<RootStackParamList>;
 
+const opcionesFiltro = ['Todos', ...gruposMusculares];
+
 export default function RoutineListScreen() {
   const navegacion = useNavigation<PropiedadesNavegacion>();
   const { routines, deleteRoutine } = useRoutines();
+
+  const [filtroGrupo, setFiltroGrupo] = useState('Todos');
+
+  const rutinasFiltradas =
+    filtroGrupo === 'Todos'
+      ? routines
+      : routines.filter((rutina) => rutina.muscleGroup === filtroGrupo);
 
   const irADetalle = (id: string) => {
     navegacion.navigate('Detail', { id });
@@ -26,7 +36,7 @@ export default function RoutineListScreen() {
     navegacion.navigate('AddRoutine');
   };
 
-    const renderizarRutina = ({ item }: { item: Routine }) => (
+  const renderizarRutina = ({ item }: { item: Routine }) => (
     <View style={estilos.tarjeta}>
       <View style={estilos.iconoTarjeta}>
         <Ionicons name="barbell-outline" size={22} color="#E11D2E" />
@@ -60,16 +70,41 @@ export default function RoutineListScreen() {
       <EncabezadoApp />
       <Text style={estilos.etiquetaSuperior}>TU PLAN DE ENTRENAMIENTO</Text>
       <Text style={estilos.encabezado}>Rutinas</Text>
+
+      <View style={estilos.contenedorFiltro}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.filtro}>
+          {opcionesFiltro.map((opcion) => {
+            const activo = filtroGrupo === opcion;
+            return (
+              <Pressable
+                key={opcion}
+                style={[estilos.chipFiltro, activo && estilos.chipFiltroActivo]}
+                onPress={() => setFiltroGrupo(opcion)}
+              >
+                <Text style={[estilos.textoChipFiltro, activo && estilos.textoChipFiltroActivo]}>{opcion}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      <Text style={estilos.contador}>
+        {rutinasFiltradas.length} de {routines.length} rutinas
+      </Text>
       <FlatList
-        data={routines}
+        data={rutinasFiltradas}
         keyExtractor={(item) => item.id}
         renderItem={renderizarRutina}
         contentContainerStyle={estilos.lista}
         ListEmptyComponent={
-          <Text style={estilos.mensajeVacio}>Aun no tienes rutinas. Crea la primera con el boton +.</Text>
+          <Text style={estilos.mensajeVacio}>
+            {filtroGrupo === 'Todos'
+              ? 'Aun no tienes rutinas. Crea la primera con el boton +.'
+              : `No tienes rutinas de ${filtroGrupo}.`}
+          </Text>
         }
       />
-            <Pressable
+      <Pressable
         style={({ pressed }) => [estilos.botonFlotante, pressed && estilos.botonPresionado]}
         onPress={irACrear}
       >
@@ -88,6 +123,20 @@ const estilos = StyleSheet.create({
     letterSpacing: 1.5,
   },
   encabezado: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginTop: 2, marginBottom: 16 },
+  contenedorFiltro: { marginBottom: 12 },
+  filtro: { gap: 8, paddingRight: 8 },
+  chipFiltro: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#262626',
+  },
+  chipFiltroActivo: { backgroundColor: '#E11D2E', borderColor: '#E11D2E' },
+  textoChipFiltro: { color: '#9A9A9A', fontSize: 13, fontWeight: '600' },
+  textoChipFiltroActivo: { color: '#FFFFFF' },
+  contador: { color: '#666666', fontSize: 12, marginBottom: 10 },
   lista: { paddingBottom: 100 },
   tarjeta: {
     flexDirection: 'row',

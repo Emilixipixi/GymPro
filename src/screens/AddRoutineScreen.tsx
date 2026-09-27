@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 
 import type { RootStackParamList } from '../../App';
-import { useRoutines } from '../context/RoutineContext';
+import { useRoutines, gruposMusculares } from '../context/RoutineContext';
 
 type PropiedadesNavegacion = NativeStackNavigationProp<RootStackParamList>;
 type PropiedadesRuta = RouteProp<RootStackParamList, 'AddRoutine'>;
+
+type ErroresFormulario = {
+  nombre?: string;
+  grupoMuscular?: string;
+  duracion?: string;
+};
+
+const duracionMinima = 10;
+const duracionMaxima = 180;
 
 export default function AddRoutineScreen() {
   const navegacion = useNavigation<PropiedadesNavegacion>();
@@ -21,6 +30,7 @@ export default function AddRoutineScreen() {
   const [nombre, setNombre] = useState('');
   const [grupoMuscular, setGrupoMuscular] = useState('');
   const [duracion, setDuracion] = useState('');
+  const [errores, setErrores] = useState<ErroresFormulario>({});
 
   useEffect(() => {
     if (idEdicion) {
@@ -35,24 +45,44 @@ export default function AddRoutineScreen() {
       setGrupoMuscular('');
       setDuracion('');
     }
+    setErrores({});
   }, [idEdicion]);
 
-  const guardarRutina = () => {
-    if (!nombre.trim() || !grupoMuscular.trim() || !duracion.trim()) {
-      Alert.alert('Campos incompletos', 'Completa nombre, grupo muscular y duración.');
-      return;
+  const validarFormulario = () => {
+    const nuevosErrores: ErroresFormulario = {};
+
+    if (!nombre.trim()) {
+      nuevosErrores.nombre = 'El nombre es obligatorio.';
     }
 
-    const duracionNumerica = parseFloat(duracion);
-    if (Number.isNaN(duracionNumerica)) {
-      Alert.alert('Duración inválida', 'Ingresa un número válido en duración.');
+    if (!grupoMuscular.trim()) {
+      nuevosErrores.grupoMuscular = 'Selecciona un grupo muscular.';
+    }
+
+    const duracionNumerica = Number(duracion.trim());
+    if (!duracion.trim()) {
+      nuevosErrores.duracion = 'La duración es obligatoria.';
+    } else if (Number.isNaN(duracionNumerica)) {
+      nuevosErrores.duracion = 'La duración debe ser un número.';
+    } else if (duracionNumerica < duracionMinima || duracionNumerica > duracionMaxima) {
+      nuevosErrores.duracion = `La duración debe estar entre ${duracionMinima} y ${duracionMaxima} minutos.`;
+    }
+
+    return nuevosErrores;
+  };
+
+  const guardarRutina = () => {
+    const nuevosErrores = validarFormulario();
+    setErrores(nuevosErrores);
+
+    if (Object.keys(nuevosErrores).length > 0) {
       return;
     }
 
     const datos = {
       name: nombre.trim(),
-      muscleGroup: grupoMuscular.trim(),
-      duration: duracionNumerica,
+      muscleGroup: grupoMuscular,
+      duration: Number(duracion.trim()),
     };
 
     if (idEdicion) {
@@ -64,39 +94,70 @@ export default function AddRoutineScreen() {
     navegacion.goBack();
   };
 
+  const cambiarNombre = (texto: string) => {
+    setNombre(texto);
+    setErrores((actuales) => ({ ...actuales, nombre: undefined }));
+  };
+
+  const seleccionarGrupo = (grupo: string) => {
+    setGrupoMuscular(grupo);
+    setErrores((actuales) => ({ ...actuales, grupoMuscular: undefined }));
+  };
+
+  const cambiarDuracion = (texto: string) => {
+    setDuracion(texto);
+    setErrores((actuales) => ({ ...actuales, duracion: undefined }));
+  };
+
   return (
     <SafeAreaView style={estilos.contenedor} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={estilos.scroll}>
         <Text style={estilos.etiqueta}>Nombre</Text>
         <TextInput
-          style={estilos.input}
+          style={[estilos.input, errores.nombre && estilos.inputError]}
           value={nombre}
-          onChangeText={setNombre}
+          onChangeText={cambiarNombre}
           placeholder="Ej: Pecho y Tríceps"
           placeholderTextColor="#666666"
         />
+        {errores.nombre && <Text style={estilos.textoError}>{errores.nombre}</Text>}
 
         <Text style={estilos.etiqueta}>Grupo Muscular</Text>
-        <TextInput
-          style={estilos.input}
-          value={grupoMuscular}
-          onChangeText={setGrupoMuscular}
-          placeholder="Ej: Pecho"
-          placeholderTextColor="#666666"
-        />
+        <View style={estilos.grupos}>
+          {gruposMusculares.map((grupo) => {
+            const seleccionado = grupoMuscular === grupo;
+            return (
+              <Pressable
+                key={grupo}
+                style={[
+                  estilos.chipGrupo,
+                  seleccionado && estilos.chipGrupoSeleccionado,
+                  errores.grupoMuscular && estilos.chipGrupoError,
+                ]}
+                onPress={() => seleccionarGrupo(grupo)}
+              >
+                <Text style={[estilos.textoChipGrupo, seleccionado && estilos.textoChipGrupoSeleccionado]}>
+                  {grupo}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {errores.grupoMuscular && <Text style={estilos.textoError}>{errores.grupoMuscular}</Text>}
 
         <Text style={estilos.etiqueta}>Duración (minutos)</Text>
         <TextInput
-          style={estilos.input}
+          style={[estilos.input, errores.duracion && estilos.inputError]}
           value={duracion}
-          onChangeText={setDuracion}
-          placeholder="Ej: 45"
+          onChangeText={cambiarDuracion}
+          placeholder="Entre 10 y 180"
           placeholderTextColor="#666666"
           keyboardType="numeric"
         />
+        {errores.duracion && <Text style={estilos.textoError}>{errores.duracion}</Text>}
 
         <Pressable style={estilos.botonGuardar} onPress={guardarRutina}>
-          <Text style={estilos.textoBotonGuardar}>Guardar</Text>
+          <Text style={estilos.textoBotonGuardar}>{idEdicion ? 'Actualizar' : 'Guardar'}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -117,6 +178,21 @@ const estilos = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
   },
+  inputError: { borderColor: '#E11D2E' },
+  textoError: { color: '#FF5A67', fontSize: 12, marginTop: 6 },
+  grupos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipGrupo: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#262626',
+  },
+  chipGrupoSeleccionado: { backgroundColor: '#E11D2E', borderColor: '#E11D2E' },
+  chipGrupoError: { borderColor: '#E11D2E' },
+  textoChipGrupo: { color: '#9A9A9A', fontSize: 14, fontWeight: '600' },
+  textoChipGrupoSeleccionado: { color: '#FFFFFF' },
   botonGuardar: {
     backgroundColor: '#E11D2E',
     borderRadius: 12,
