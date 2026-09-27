@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -52,20 +52,20 @@ export default function AddRoutineScreen() {
     const nuevosErrores: ErroresFormulario = {};
 
     if (!nombre.trim()) {
-      nuevosErrores.nombre = 'El nombre es obligatorio.';
+      nuevosErrores.nombre = 'El nombre es obligatorio';
     }
 
     if (!grupoMuscular.trim()) {
-      nuevosErrores.grupoMuscular = 'Selecciona un grupo muscular.';
+      nuevosErrores.grupoMuscular = 'Selecciona un grupo muscular';
     }
 
     const duracionNumerica = Number(duracion.trim());
     if (!duracion.trim()) {
-      nuevosErrores.duracion = 'La duración es obligatoria.';
+      nuevosErrores.duracion = 'La duración es obligatoria';
     } else if (Number.isNaN(duracionNumerica)) {
-      nuevosErrores.duracion = 'La duración debe ser un número.';
+      nuevosErrores.duracion = 'La duracion debe ser un numero';
     } else if (duracionNumerica < duracionMinima || duracionNumerica > duracionMaxima) {
-      nuevosErrores.duracion = `La duración debe estar entre ${duracionMinima} y ${duracionMaxima} minutos.`;
+      nuevosErrores.duracion = `La duracion debe estar entre ${duracionMinima} y ${duracionMaxima} minutos`;
     }
 
     return nuevosErrores;
@@ -87,8 +87,10 @@ export default function AddRoutineScreen() {
 
     if (idEdicion) {
       updateRoutine(idEdicion, datos);
+      Alert.alert('Rutina actualizada', `"${datos.name}" se actualizo correctamente`);
     } else {
       addRoutine(datos);
+      Alert.alert('Rutina guardada', `"${datos.name}" se creo correctamente`);
     }
 
     navegacion.goBack();
@@ -145,7 +147,7 @@ export default function AddRoutineScreen() {
         </View>
         {errores.grupoMuscular && <Text style={estilos.textoError}>{errores.grupoMuscular}</Text>}
 
-        <Text style={estilos.etiqueta}>Duración (minutos)</Text>
+        <Text style={estilos.etiqueta}>Duracion (minutos)</Text>
         <TextInput
           style={[estilos.input, errores.duracion && estilos.inputError]}
           value={duracion}
