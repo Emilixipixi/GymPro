@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler';
-import { useEffect, useState } from 'react';
-import { LogBox, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { LogBox } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -37,26 +36,8 @@ const temaOscuro = {
 };
 
 export default function App() {
-  const [dbLista, setDbLista] = useState(false);
-
-  useEffect(() => {
-    const prepararDb = async () => {
-      await initDatabase();
-      setDbLista(true);
-    };
-    prepararDb();
-  }, []);
-
-  if (!dbLista) {
-    return (
-      <View style={estilos.cargando}>
-        <ActivityIndicator size="large" color="#E11D2E" />
-      </View>
-    );
-  }
-
   return (
-    <SQLiteProvider databaseName="gympro.db">
+    <SQLiteProvider databaseName="gympro.db" onInit={initDatabase}>
       <RoutineProvider>
         <SafeAreaProvider>
           <NavigationContainer theme={temaOscuro}>
@@ -89,12 +70,3 @@ export default function App() {
     </SQLiteProvider>
   );
 }
-
-const estilos = StyleSheet.create({
-  cargando: {
-    flex: 1,
-    backgroundColor: '#0F0F0F',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

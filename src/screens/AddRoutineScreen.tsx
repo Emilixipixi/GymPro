@@ -71,7 +71,7 @@ export default function AddRoutineScreen() {
     return nuevosErrores;
   };
 
-  const guardarRutina = () => {
+    const guardarRutina = async () => {
     const nuevosErrores = validarFormulario();
     setErrores(nuevosErrores);
 
@@ -85,15 +85,15 @@ export default function AddRoutineScreen() {
       duration: Number(duracion.trim()),
     };
 
-    if (idEdicion) {
-      updateRoutine(idEdicion, datos);
-      Alert.alert('Rutina actualizada', `"${datos.name}" se actualizo correctamente`);
-    } else {
-      addRoutine(datos);
-      Alert.alert('Rutina guardada', `"${datos.name}" se creo correctamente`);
-    }
+    const exito = idEdicion ? await updateRoutine(idEdicion, datos) : await addRoutine(datos);
 
-    navegacion.goBack();
+    if (exito) {
+      Alert.alert(
+        idEdicion ? 'Rutina actualizada' : 'Rutina guardada',
+        `"${datos.name}" se ${idEdicion ? 'actualizo' : 'creo'} correctamente.`
+      );
+      navegacion.goBack();
+    }
   };
 
   const cambiarNombre = (texto: string) => {

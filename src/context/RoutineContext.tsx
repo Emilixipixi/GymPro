@@ -53,6 +53,7 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
       await cargarRutinas();
       return true;
     } catch (error) {
+      console.log('Error al guardar rutina:', error);
       Alert.alert('Error', 'No se pudo guardar la rutina');
       return false;
     }

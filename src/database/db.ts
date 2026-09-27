@@ -1,8 +1,6 @@
-import * as SQLite from 'expo-sqlite';
+import type { SQLiteDatabase } from 'expo-sqlite';
 
-export const initDatabase = async () => {
-  const db = await SQLite.openDatabaseAsync('gympro.db');
-
+export const initDatabase = async (db: SQLiteDatabase) => {
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
 
