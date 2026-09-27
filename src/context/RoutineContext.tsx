@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Alert } from 'react-native';
+import { useSQLiteContext } from 'expo-sqlite';
 
 export type Routine = {
   id: string;
@@ -16,45 +18,67 @@ type DatosRutina = {
 
 type RoutineContextType = {
   routines: Routine[];
-  addRoutine: (datos: DatosRutina) => void;
-  updateRoutine: (id: string, datos: DatosRutina) => void;
-  deleteRoutine: (id: string) => void;
+  addRoutine: (datos: DatosRutina) => Promise<boolean>;
+  updateRoutine: (id: string, datos: DatosRutina) => Promise<boolean>;
+  deleteRoutine: (id: string) => Promise<void>;
 };
 
 export const gruposMusculares = ['Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos'];
 
 const RoutineContext = createContext<RoutineContextType | undefined>(undefined);
 
-const rutinasIniciales: Routine[] = [
-  {
-    id: '1',
-    name: 'Pecho y Tríceps',
-    muscleGroup: 'Pecho',
-    duration: 45,
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export function RoutineProvider({ children }: { children: ReactNode }) {
-  const [routines, setRoutines] = useState<Routine[]>(rutinasIniciales);
+  const db = useSQLiteContext();
+  const [routines, setRoutines] = useState<Routine[]>([]);
 
-  const addRoutine = (datos: DatosRutina) => {
-    const nuevaRutina: Routine = {
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      ...datos,
-    };
-    setRoutines((actuales) => [...actuales, nuevaRutina]);
+  const cargarRutinas = async () => {
+    try {
+      const resultado = await db.getAllAsync<Routine>('SELECT * FROM rutinas ORDER BY createdAt ASC');
+      setRoutines(resultado);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudieron cargar las rutinas');
+    }
   };
 
-  const updateRoutine = (id: string, datos: DatosRutina) => {
-    setRoutines((actuales) =>
-      actuales.map((rutina) => (rutina.id === id ? { ...rutina, ...datos } : rutina))
-    );
+  useEffect(() => {
+    cargarRutinas();
+  }, []);
+
+  const addRoutine = async (datos: DatosRutina) => {
+    try {
+      await db.runAsync(
+        'INSERT INTO rutinas (id, name, muscleGroup, duration, createdAt) VALUES (?, ?, ?, ?, ?)',
+        [Date.now().toString(), datos.name, datos.muscleGroup, datos.duration, new Date().toISOString()]
+      );
+      await cargarRutinas();
+      return true;
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar la rutina');
+      return false;
+    }
   };
 
-  const deleteRoutine = (id: string) => {
-    setRoutines((actuales) => actuales.filter((rutina) => rutina.id !== id));
+  const updateRoutine = async (id: string, datos: DatosRutina) => {
+    try {
+      await db.runAsync(
+        'UPDATE rutinas SET name = ?, muscleGroup = ?, duration = ? WHERE id = ?',
+        [datos.name, datos.muscleGroup, datos.duration, id]
+      );
+      await cargarRutinas();
+      return true;
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar la rutina');
+      return false;
+    }
+  };
+
+  const deleteRoutine = async (id: string) => {
+    try {
+      await db.runAsync('DELETE FROM rutinas WHERE id = ?', [id]);
+      await cargarRutinas();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo eliminar la rutina');
+    }
   };
 
   return (

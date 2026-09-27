@@ -1,13 +1,16 @@
 import 'react-native-gesture-handler';
-import { LogBox } from 'react-native';
+import { useEffect, useState } from 'react';
+import { LogBox, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SQLiteProvider } from 'expo-sqlite';
 
 import DrawerNavigator from './src/navigators/DrawerNavigator';
 import RoutineDetailScreen from './src/screens/RoutineDetailScreen';
 import AddRoutineScreen from './src/screens/AddRoutineScreen';
 import { RoutineProvider } from './src/context/RoutineContext';
+import { initDatabase } from './src/database/db';
 
 LogBox.ignoreLogs(['[Reanimated] Reduced motion setting is enabled on this device']);
 
@@ -34,35 +37,64 @@ const temaOscuro = {
 };
 
 export default function App() {
+  const [dbLista, setDbLista] = useState(false);
+
+  useEffect(() => {
+    const prepararDb = async () => {
+      await initDatabase();
+      setDbLista(true);
+    };
+    prepararDb();
+  }, []);
+
+  if (!dbLista) {
+    return (
+      <View style={estilos.cargando}>
+        <ActivityIndicator size="large" color="#E11D2E" />
+      </View>
+    );
+  }
+
   return (
-    <RoutineProvider>
-      <SafeAreaProvider>
-        <NavigationContainer theme={temaOscuro}>
-          <Stack.Navigator initialRouteName="MenuPrincipal">
-            <Stack.Screen name="MenuPrincipal" options={{ headerShown: false }}>
-              {() => <DrawerNavigator nombre={nombreUsuario} apellido={apellidoUsuario} />}
-            </Stack.Screen>
-            <Stack.Screen
-              name="Detail"
-              component={RoutineDetailScreen}
-              options={{
-                title: 'Detalle de Rutina',
-                headerStyle: { backgroundColor: '#141414' },
-                headerTintColor: '#FFFFFF',
-              }}
-            />
-            <Stack.Screen
-              name="AddRoutine"
-              component={AddRoutineScreen}
-              options={({ route }) => ({
-                title: route.params?.id ? 'Editar Rutina' : 'Nueva Rutina',
-                headerStyle: { backgroundColor: '#141414' },
-                headerTintColor: '#FFFFFF',
-              })}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </RoutineProvider>
+    <SQLiteProvider databaseName="gympro.db">
+      <RoutineProvider>
+        <SafeAreaProvider>
+          <NavigationContainer theme={temaOscuro}>
+            <Stack.Navigator initialRouteName="MenuPrincipal">
+              <Stack.Screen name="MenuPrincipal" options={{ headerShown: false }}>
+                {() => <DrawerNavigator nombre={nombreUsuario} apellido={apellidoUsuario} />}
+              </Stack.Screen>
+              <Stack.Screen
+                name="Detail"
+                component={RoutineDetailScreen}
+                options={{
+                  title: 'Detalle de Rutina',
+                  headerStyle: { backgroundColor: '#141414' },
+                  headerTintColor: '#FFFFFF',
+                }}
+              />
+              <Stack.Screen
+                name="AddRoutine"
+                component={AddRoutineScreen}
+                options={({ route }) => ({
+                  title: route.params?.id ? 'Editar Rutina' : 'Nueva Rutina',
+                  headerStyle: { backgroundColor: '#141414' },
+                  headerTintColor: '#FFFFFF',
+                })}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </RoutineProvider>
+    </SQLiteProvider>
   );
 }
+
+const estilos = StyleSheet.create({
+  cargando: {
+    flex: 1,
+    backgroundColor: '#0F0F0F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
